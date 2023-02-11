@@ -119,4 +119,18 @@ contract Decentralizedskillapp {
         );
         return (is_company[msg.sender]) ? "company" : "user"; // returns account type
     }
+
+    // Updating a wallet address
+    function update_wallet_address(string calldata email, address new_address)
+        public
+    {
+        require(
+            email_to_address[email] == msg.sender,
+            "error: function called from incorrect wallet address"
+        );
+        email_to_address[email] = new_address;
+        uint256 id = address_to_id[msg.sender];
+        address_to_id[msg.sender] = 0;
+        address_to_id[new_address] = id;
+    }
 }
