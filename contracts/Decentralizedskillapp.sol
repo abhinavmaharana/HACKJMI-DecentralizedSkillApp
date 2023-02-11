@@ -56,4 +56,57 @@ contract Decentralizedskillapp {
         uint256 company_id;
         bool is_approved;
     }
+
+    // String comparison functions.
+    
+    function memcmp(bytes memory a, bytes memory b)
+        internal
+        pure
+        returns (bool)
+    {
+        return (a.length == b.length) && (keccak256(a) == keccak256(b)); // Compares the two hashes
+    }
+
+    function strcmp(string memory a, string memory b) // string comparison function
+        internal
+        pure
+        returns (bool)
+    {
+        return memcmp(bytes(a), bytes(b));
+    }
+
+    // Sign Up
+    function sign_up(
+        string calldata email,
+        string calldata name,
+        string calldata acc_type // account type (Company/User)
+    ) public {
+        // We will check that account does not already exists
+        require(
+            email_to_address[email] == address(0),
+            "error: user already exists!"
+        );
+        email_to_address[email] == msg.sender;
+
+        // For user account type
+        if (strcmp(acc_type, "user")) {
+            user storage new_user = employees.push(); // Creates a new user and returns the reference to it.
+            new_user.name = name;
+            new_user.id = employees.length - 1; // give account a unique user id
+            new_user.wallet_address = msg.sender;
+            address_to_id[msg.sender] = new_user.id;
+            new_user.user_skills = new uint256[](0);
+            new_user.user_work_experience = new uint256[](0);
+        } else { 
+            // For company account type
+            company storage new_company = companies.push(); // Creates a new company and returns a reference to it
+            new_company.name = name;
+            new_company.id = companies.length - 1; // give account a unique company id
+            new_company.wallet_address = msg.sender;
+            new_company.current_employees = new uint256[](0);
+            new_company.previous_employees = new uint256[](0);
+            address_to_id[msg.sender] = new_company.id;
+            is_company[msg.sender] = true; 
+        }
+    }
 }
