@@ -36,6 +36,39 @@ contract Decentralizedskillapp {
         uint256[] requested_employees;
     }
 
+    struct certificate {
+        string url;
+        string issue_date;
+        string valid_till;
+        string name;
+        uint256 id;
+        string issuer;
+    }
+
+    struct endorsment {
+        uint256 endorser_id;
+        string date;
+        string comment;
+    }
+
+    struct experience {
+        string starting_date;
+        string ending_date;
+        string user_name;
+        string role;
+        bool currently_working;
+        uint256 company_id;
+        bool is_approved;
+    }
+
+    struct skill {
+        uint256 id;
+        string name;
+        bool verified;
+        uint256[] skill_certifications;
+        uint256[] skill_endorsements;
+    }
+
     struct user {
         uint256 id;
         uint256 company_id;
@@ -46,15 +79,6 @@ contract Decentralizedskillapp {
         uint256 num_skill;
         uint256[] user_skills;
         uint256[] user_work_experience;
-    }
-
-    struct experience {
-        string starting_date;
-        string ending_date;
-        string role;
-        bool currently_working;
-        uint256 company_id;
-        bool is_approved;
     }
 
     // String comparison functions.
@@ -133,4 +157,54 @@ contract Decentralizedskillapp {
         address_to_id[msg.sender] = 0;
         address_to_id[new_address] = id;
     }
+
+    // Function for adding experience
+    function add_experience(
+        uint256 user_id,
+        string calldata starting_date,
+        string calldata ending_date,
+        string calldata role,
+        uint256 company_id
+    ) public verifiedUser(user_id) {
+        experience storage new_experience = experiences.push();
+        new_experience.company_id = company_id;
+        new_experience.currently_working = false;
+        new_experience.is_approved = false;
+        new_experience.starting_date = starting_date;
+        new_experience.role = role;
+        new_experience.ending_date = ending_date;
+        employees[user_id].user_work_experience.push(experiences.length - 1);
+        companies[company_id].requested_employees.push(experiences.length - 1);
+    }
+
+    // Approve experience function
+    function approve_experience(uint256 exp_id, uint256 company_id) public {
+        require(
+            (is_company[msg.sender] &&
+                companies[address_to_id[msg.sender]].id ==
+                experiences[exp_id].company_id) ||
+                (employees[address_to_id[msg.sender]].is_manager &&
+                    employees[address_to_id[msg.sender]].company_id ==
+                    experiences[exp_id].company_id),
+            "error: approver should be the company account or a manager of the required company"
+        );
+        uint256 i;
+        experiences[exp_id].is_approved = true;
+        for (i = 0; i < companies[company_id].requested_employees.length; i++) {
+            if (companies[company_id].requested_employees[i] == exp_id) {
+                companies[company_id].requested_employees[i] = 0;
+                break;
+            }
+        }
+        for (i = 0; i < companies[company_id].current_employees.length; i++) {
+            if (companies[company_id].current_employees[i] == 0) {
+                companies[company_id].requested_employees[i] = exp_id;
+                break;
+            }
+        }
+        if (i == companies[company_id].current_employees.length)
+            companies[company_id].current_employees.push(exp_id);
+    }
+
+
 }
