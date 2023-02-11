@@ -81,6 +81,16 @@ contract Decentralizedskillapp {
         uint256[] user_work_experience;
     }
 
+    // Remove employee from the company.
+    constructor() {
+        user storage dummy_user = employees.push();
+        dummy_user.name = "dummy";
+        dummy_user.wallet_address = msg.sender;
+        dummy_user.id = 0;
+        dummy_user.user_skills = new uint256[](0);
+        dummy_user.user_work_experience = new uint256[](0);
+    }
+
     // String comparison functions.
     
     function memcmp(bytes memory a, bytes memory b)
@@ -206,5 +216,17 @@ contract Decentralizedskillapp {
             companies[company_id].current_employees.push(exp_id);
     }
 
-
+    // Function to approve a manager
+    function approve_manager(uint256 employee_id) public {
+		require(is_company[msg.sender], "error: sender not a company account");
+        require(
+            employees[employee_id].company_id == address_to_id[msg.sender],
+            "error: user not of the same company"
+        );
+        require(
+            !(employees[employee_id].is_manager),
+            "error: user is already a manager"
+        );
+        employees[employee_id].is_manager = true;
+    }
 }
