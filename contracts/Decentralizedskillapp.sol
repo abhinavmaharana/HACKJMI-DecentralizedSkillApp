@@ -109,4 +109,14 @@ contract Decentralizedskillapp {
             is_company[msg.sender] = true; 
         }
     }
+
+    // Login Process
+    function login(string calldata email) public view returns (string memory) {
+        // Checking the function caller's wallet address from global map containing email address mapped to wallet address
+        require(
+            msg.sender == email_to_address[email],
+            "error: incorrect wallet address used for signing in"
+        );
+        return (is_company[msg.sender]) ? "company" : "user"; // returns account type
+    }
 }
